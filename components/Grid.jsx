@@ -36,12 +36,27 @@ function AutoArea({ value, onChange, onBlur, className }) {
       const start = el.selectionStart;
       const end = el.selectionEnd;
       if (start !== end) {
-        const selected = value.substring(start, end);
-        const newVal = value.substring(0, start) + "==" + selected + "==" + value.substring(end);
+        let selected = value.substring(start, end);
+        let newVal, newStart, newEnd;
+
+        if (selected.startsWith("==") && selected.endsWith("==")) {
+          newVal = value.substring(0, start) + selected.substring(2, selected.length - 2) + value.substring(end);
+          newStart = start;
+          newEnd = end - 4;
+        } else if (start >= 2 && value.substring(start - 2, start) === "==" && value.substring(end, end + 2) === "==") {
+          newVal = value.substring(0, start - 2) + selected + value.substring(end + 2);
+          newStart = start - 2;
+          newEnd = end - 2;
+        } else {
+          newVal = value.substring(0, start) + "==" + selected + "==" + value.substring(end);
+          newStart = start + 2;
+          newEnd = end + 2;
+        }
+        
         onChange(newVal);
         setTimeout(() => {
-          el.selectionStart = start + 2;
-          el.selectionEnd = end + 2;
+          el.selectionStart = newStart;
+          el.selectionEnd = newEnd;
         }, 10);
       }
     }
