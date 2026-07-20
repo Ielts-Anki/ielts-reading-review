@@ -187,5 +187,4 @@ th.vocab-head .hl-text { background-size: 100% 46%; }
   .face .word { font-size: 32px; }
   .face .meaning { font-size: 20px; }
 }
-m a r k ,   . h l   {   b a c k g r o u n d - c o l o r :   r g b a ( 2 5 5 ,   2 3 5 ,   5 9 ,   0 . 6 ) ;   p a d d i n g :   0   4 p x ;   b o r d e r - r a d i u s :   3 p x ;   f o n t - w e i g h t :   5 0 0 ;   }  
- 
+mark, .hl { background-color: rgba(255, 235, 59, 0.6); padding: 0 4px; border-radius: 3px; font-weight: 500; }
