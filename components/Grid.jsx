@@ -1,14 +1,18 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { parseVocab } from "@/lib/srs.mjs";
+import nlp from "compromise";
 
 const COLS = [
-  { key: "link", label: "Link/nguồn", w: 150 },
+  { key: "source", label: "Nguồn", w: 120 },
   { key: "title", label: "Tên bài", w: 150 },
-  { key: "mistake", label: "Mistake — sai gì / vì sao sai", w: 280 },
+  { key: "myAnswer", label: "Tôi chọn", w: 80 },
+  { key: "correctAnswer", label: "Đáp án đúng", w: 90 },
+  { key: "mistake", label: "Mistake — sai gì / vì sao sai", w: 250 },
   { key: "info", label: "Thông tin trong bài", w: 320 },
   { key: "paraphrase", label: "Paraphrase", w: 200 },
   { key: "vocabRaw", label: "Vocabulary  ( từ : nghĩa )", w: 220, vocab: true },
+  { key: "link", label: "Link/Web", w: 80 },
 ];
 
 function AutoArea({ value, onChange, onBlur, className }) {
@@ -34,6 +38,109 @@ function AutoArea({ value, onChange, onBlur, className }) {
   );
 }
 
+function VisualParserModal({ onClose }) {
+  const [text, setText] = useState("");
+  const [chunks, setChunks] = useState([]);
+
+  function analyze(val) {
+    setText(val);
+    if (!val) {
+      setChunks([]);
+      return;
+    }
+    const doc = nlp(val);
+    const terms = doc.terms().json();
+    
+    const newChunks = [];
+    let currentChunk = null;
+
+    for (const termObj of terms) {
+      const term = termObj.terms[0]; // get primary term info
+      let rawTag = term.tags[0] || "Other";
+      
+      let tag = "OTHER";
+      if (term.tags.includes("Noun") || term.tags.includes("Pronoun")) tag = "NOUN";
+      else if (term.tags.includes("Verb")) tag = "VERB";
+      else if (term.tags.includes("Adjective")) tag = "ADJ";
+      else if (term.tags.includes("Adverb")) tag = "ADV";
+      else if (term.tags.includes("Determiner")) tag = "DET";
+      else if (term.tags.includes("Preposition")) tag = "PREP";
+      else if (term.tags.includes("Conjunction")) tag = "CONJ";
+      
+      const wordObj = { text: term.text, tag };
+      const isCoreTag = ["NOUN", "VERB", "ADJ", "ADV"].includes(tag);
+
+      if (!currentChunk) {
+         currentChunk = { tag: isCoreTag ? tag : "SKIP", words: [wordObj] };
+      } else {
+         if (isCoreTag && currentChunk.tag === tag) {
+            currentChunk.words.push(wordObj);
+         } else {
+            newChunks.push(currentChunk);
+            currentChunk = { tag: isCoreTag ? tag : "SKIP", words: [wordObj] };
+         }
+      }
+    }
+    if (currentChunk) newChunks.push(currentChunk);
+    setChunks(newChunks);
+  }
+
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', maxWidth: '800px', width: '90%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 style={{ margin: 0, color: 'var(--text)', fontSize: '1.2rem' }}>🔍 Visual Parser (Phân tích cú pháp)</h3>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#999' }}>×</button>
+        </div>
+        
+        <p style={{ marginTop: 0, color: 'var(--text-light)', fontSize: '0.9rem' }}>Dán câu tiếng Anh vào đây, AI sẽ tự động khoanh vùng các cụm từ (Phrases) có cùng loại từ (POS) để bạn dễ học.</p>
+        
+        <textarea 
+          className="cell-area"
+          style={{ width: '100%', minHeight: '80px', padding: '12px', fontSize: '1rem', border: '1px solid #ccc', borderRadius: '8px', marginBottom: '24px' }}
+          placeholder="Ví dụ: The Dow just had its biggest point drop in history."
+          value={text}
+          onChange={e => analyze(e.target.value)}
+        />
+        
+        {chunks.length > 0 && (
+          <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', border: '1px solid #eee' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 12px', alignItems: 'flex-end', lineHeight: 1 }}>
+              {chunks.map((chunk, i) => {
+                const isGroup = chunk.words.length >= 1 && chunk.tag !== "SKIP";
+                // Color coding based on tags
+                let color = "#333";
+                if (chunk.tag === "NOUN") color = "#e74c3c"; // Red for nouns
+                if (chunk.tag === "VERB") color = "#3498db"; // Blue for verbs
+                if (chunk.tag === "ADJ") color = "#9b59b6"; // Purple for adj
+                if (chunk.tag === "ADV") color = "#e67e22"; // Orange for adv
+
+                const borderStyle = isGroup ? `2px solid ${color}` : "2px solid transparent";
+                const opacity = chunk.tag === "SKIP" ? 0.4 : 1;
+                
+                return (
+                  <div key={i} style={{ border: borderStyle, borderRadius: '6px', padding: '6px 8px', display: 'flex', gap: '6px', opacity, alignItems: 'flex-end', background: isGroup ? color + '11' : 'transparent' }}>
+                     {chunk.words.map((w, j) => (
+                        <div key={j} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                           <span style={{ fontSize: '16px', fontWeight: chunk.tag !== "SKIP" ? '600' : '400', color: chunk.tag !== "SKIP" ? '#111' : '#666' }}>{w.text}</span>
+                           <span style={{ fontSize: '10px', color: chunk.tag !== "SKIP" ? color : '#999', fontWeight: 'bold', letterSpacing: '0.5px' }}>{w.tag}</span>
+                        </div>
+                     ))}
+                  </div>
+                )
+              })}
+            </div>
+            
+            <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #ddd', fontSize: '0.85rem', color: '#666' }}>
+               <b>Chú giải:</b> <span style={{color: '#e74c3c', fontWeight: 'bold'}}>NOUN</span> (Danh từ), <span style={{color: '#3498db', fontWeight: 'bold'}}>VERB</span> (Động từ), <span style={{color: '#9b59b6', fontWeight: 'bold'}}>ADJ</span> (Tính từ), <span style={{color: '#e67e22', fontWeight: 'bold'}}>ADV</span> (Trạng từ). Các từ mờ là mạo từ/giới từ không mang ý nghĩa chính.
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function Grid({ onChanged, toast }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +148,7 @@ export default function Grid({ onChanged, toast }) {
   const [search, setSearch] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [sheetUrl, setSheetUrl] = useState("");
+  const [showParser, setShowParser] = useState(false);
   const dirty = useRef(new Set());
   const fileInputRef = useRef(null);
 
@@ -99,32 +207,33 @@ export default function Grid({ onChanged, toast }) {
     let current = null;
 
     for (const row of rawData) {
-      // Find matching keys flexibly
       const getVal = (keywords) => {
         const key = Object.keys(row).find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
         return key ? (row[key] || "") : "";
       };
 
-      const link = getVal(["link", "nguồn", "nguon"]);
-      const title = getVal(["tên", "ten", "bài", "bai", "title"]);
+      const source = getVal(["nguồn", "nguon", "source", "cam"]);
+      const title = getVal(["tên", "ten", "bài", "bai", "title", "passage"]);
+      const link = getVal(["link", "url", "web"]);
+      const myAnswer = getVal(["tôi chọn", "tôi nhập", "my answer"]);
+      const correctAnswer = getVal(["đáp án", "correct", "đúng"]);
       const mistake = getVal(["mistake", "sai"]);
       const info = getVal(["thông tin", "thong tin", "info"]);
       const paraphrase = getVal(["paraphrase"]);
       const vocabRaw = getVal(["vocab", "từ", "tu"]);
 
-      // If title or link exists, it might be a new lesson, unless it's identical to current
       if ((title && (!current || title !== current.title)) || (link && (!current || link !== current.link && !title))) {
-        current = { link, title, mistake, info, paraphrase, vocabRaw };
+        current = { source, link, title, myAnswer, correctAnswer, mistake, info, paraphrase, vocabRaw };
         grouped.push(current);
       } else if (current) {
-        // Append to current
+        if (myAnswer) current.myAnswer += (current.myAnswer ? "\n" : "") + myAnswer;
+        if (correctAnswer) current.correctAnswer += (current.correctAnswer ? "\n" : "") + correctAnswer;
         if (mistake) current.mistake += (current.mistake ? "\n" : "") + mistake;
         if (info) current.info += (current.info ? "\n" : "") + info;
         if (paraphrase) current.paraphrase += (current.paraphrase ? "\n" : "") + paraphrase;
         if (vocabRaw) current.vocabRaw += (current.vocabRaw ? "\n" : "") + vocabRaw;
       } else {
-        // No current, just create one
-        current = { link, title, mistake, info, paraphrase, vocabRaw };
+        current = { source, link, title, myAnswer, correctAnswer, mistake, info, paraphrase, vocabRaw };
         grouped.push(current);
       }
     }
@@ -217,11 +326,13 @@ export default function Grid({ onChanged, toast }) {
   const filteredRows = rows.filter(r => {
     if (!search) return true;
     const q = search.toLowerCase();
-    return (r.title || "").toLowerCase().includes(q) || (r.link || "").toLowerCase().includes(q);
+    return (r.title || "").toLowerCase().includes(q) || (r.source || "").toLowerCase().includes(q) || (r.link || "").toLowerCase().includes(q);
   });
 
   return (
     <section>
+      {showParser && <VisualParserModal onClose={() => setShowParser(false)} />}
+      
       <div className="row-head">
         <div className="fill">
           <p className="eyebrow">Sửa đề &amp; ghi chú</p>
@@ -230,6 +341,9 @@ export default function Grid({ onChanged, toast }) {
             Nhìn được hết các cột cùng lúc như bảng tính. Ô <b>Mistake</b> ghi rõ câu nào sai,
             sai gì, vì sao. Ô <b>Vocabulary</b> (mỗi dòng <span className="mono">từ : nghĩa</span>) tự sinh thẻ ôn.
           </p>
+          <button className="btn" style={{ marginTop: '12px', background: 'var(--accent)', color: 'white' }} onClick={() => setShowParser(true)}>
+             🔍 Mở Visual Parser (Phân tích câu)
+          </button>
         </div>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
