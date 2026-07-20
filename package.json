@@ -1,0 +1,21 @@
+{
+  "name": "ielts-reading-review",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "remind": "node scripts/remind.mjs",
+    "remind:watch": "node scripts/scheduler.mjs"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "mongodb": "^7.5.0",
+    "next": "14.2.35",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.14",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}
