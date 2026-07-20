@@ -27,7 +27,7 @@ body {
 
 /* header */
 header.top { position: sticky; top: 0; z-index: 20; background: rgba(251,250,246,.9); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule); }
-.top-in { max-width: 1400px; margin: 0 auto; padding: 14px 22px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.top-in { max-width: 100%; margin: 0 auto; padding: 14px 22px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
 .brand { display: flex; align-items: baseline; gap: 12px; margin-right: auto; }
 .brand h1 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 22px; letter-spacing: -.01em; margin: 0; line-height: 1; }
 .brand .mark { display: inline-block; background: var(--hl); color: var(--ink); font-family: "Fraunces", serif; font-weight: 600; font-size: 14px; padding: 3px 9px; border-radius: 3px; transform: rotate(-3deg); }
@@ -36,7 +36,7 @@ nav.tabs button { border: 0; background: transparent; color: var(--ink-soft); fo
 nav.tabs button.on { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
 .badge { background: var(--danger); color: #fff; font-size: 11px; font-weight: 600; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; }
 
-.wrap { max-width: 1400px; margin: 0 auto; padding: 26px 22px 90px; }
+.wrap { max-width: 100%; margin: 0 auto; padding: 26px 40px 90px; }
 .eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; margin: 0 0 6px; }
 h2.section { font-family: "Fraunces", serif; font-weight: 600; font-size: 28px; margin: 0 0 4px; letter-spacing: -.01em; }
 .sub { color: var(--ink-soft); margin: 0 0 22px; max-width: 70ch; }
@@ -187,3 +187,5 @@ th.vocab-head .hl-text { background-size: 100% 46%; }
   .face .word { font-size: 32px; }
   .face .meaning { font-size: 20px; }
 }
+m a r k ,   . h l   {   b a c k g r o u n d - c o l o r :   r g b a ( 2 5 5 ,   2 3 5 ,   5 9 ,   0 . 6 ) ;   p a d d i n g :   0   4 p x ;   b o r d e r - r a d i u s :   3 p x ;   f o n t - w e i g h t :   5 0 0 ;   }  
+ 

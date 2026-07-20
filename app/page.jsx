@@ -8,7 +8,6 @@ export default function Page() {
   const [tab, setTab] = useState("grid");
   const [due, setDue] = useState(0);
   const [toastMsg, setToastMsg] = useState("");
-  const [remountKey, setRemountKey] = useState(0);
 
   const refreshDue = useCallback(async () => {
     try {
@@ -25,10 +24,8 @@ export default function Page() {
     setTimeout(() => setToastMsg(""), 1900);
   }, []);
 
-  // Khi dữ liệu đổi ở một tab, làm mới tab khác lần sau mở.
   const onChanged = useCallback(() => {
     refreshDue();
-    setRemountKey((k) => k + 1);
   }, [refreshDue]);
 
   const TABS = [
@@ -61,9 +58,9 @@ export default function Page() {
       </header>
 
       <main className="wrap">
-        {tab === "grid" && <Grid key={"g" + remountKey} onChanged={onChanged} toast={toast} />}
-        {tab === "today" && <Review key={"r" + remountKey} onChanged={onChanged} toast={toast} />}
-        {tab === "cards" && <CardsTable key={"c" + remountKey} onChanged={onChanged} toast={toast} />}
+        {tab === "grid" && <Grid onChanged={onChanged} toast={toast} />}
+        {tab === "today" && <Review onChanged={onChanged} toast={toast} />}
+        {tab === "cards" && <CardsTable onChanged={onChanged} toast={toast} />}
       </main>
 
       <div className={"toast " + (toastMsg ? "show" : "")}>{toastMsg}</div>

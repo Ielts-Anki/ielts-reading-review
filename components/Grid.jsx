@@ -17,21 +17,63 @@ const COLS = [
 
 function AutoArea({ value, onChange, onBlur, className }) {
   const ref = useRef(null);
+  const [editing, setEditing] = useState(false);
+
   const resize = () => {
     const el = ref.current;
     if (!el) return;
     el.style.height = "auto";
     el.style.height = el.scrollHeight + "px";
   };
-  useEffect(resize, [value]);
+  
+  useEffect(() => { if (editing) resize(); }, [value, editing]);
+
+  const handleKeyDown = (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') {
+      e.preventDefault();
+      const el = ref.current;
+      if (!el) return;
+      const start = el.selectionStart;
+      const end = el.selectionEnd;
+      if (start !== end) {
+        const selected = value.substring(start, end);
+        const newVal = value.substring(0, start) + "==" + selected + "==" + value.substring(end);
+        onChange(newVal);
+        setTimeout(() => {
+          el.selectionStart = start + 2;
+          el.selectionEnd = end + 2;
+        }, 10);
+      }
+    }
+  };
+
+  const formattedHtml = (value || "")
+     .replace(/</g, "&lt;")
+     .replace(/>/g, "&gt;")
+     .replace(/\n/g, "<br/>")
+     .replace(/==([^=]+)==/g, "<mark>$1</mark>");
+
+  if (!editing) {
+     return (
+       <div 
+         className={"cell-area " + (className || "")} 
+         onClick={() => setEditing(true)}
+         style={{ minHeight: '38px', cursor: 'text' }}
+         dangerouslySetInnerHTML={{ __html: formattedHtml || "&nbsp;" }}
+       />
+     )
+  }
+
   return (
     <textarea
       ref={ref}
+      autoFocus
       className={"cell-area " + (className || "")}
       value={value || ""}
       onChange={(e) => onChange(e.target.value)}
+      onKeyDown={handleKeyDown}
       onInput={resize}
-      onBlur={onBlur}
+      onBlur={() => { setEditing(false); onBlur && onBlur(); }}
       rows={1}
       spellCheck={false}
     />
