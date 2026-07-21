@@ -534,7 +534,7 @@ export default function Grid({ onChanged, toast }) {
           {/* SIDEBAR TABS */}
           <div style={{ width: '220px', flexShrink: 0, paddingRight: '12px', borderRight: '1px solid var(--border)' }}>
              <div 
-               style={{ padding: '8px 12px', cursor: 'pointer', borderRadius: '6px', marginBottom: '4px', background: activeGroupKey === "ALL" ? 'var(--accent)' : 'transparent', color: activeGroupKey === "ALL" ? '#fff' : 'inherit', fontWeight: activeGroupKey === "ALL" ? 'bold' : 'normal', transition: 'all 0.15s' }}
+               style={{ padding: '8px 12px', cursor: 'pointer', borderRadius: '6px', marginBottom: '4px', background: activeGroupKey === "ALL" ? 'var(--accent)' : 'transparent', color: activeGroupKey === "ALL" ? '#fff' : '#333', fontWeight: activeGroupKey === "ALL" ? 'bold' : 'normal', transition: 'all 0.15s' }}
                onClick={() => setActiveGroupKey("ALL")}
              >
                Tất cả các bài ({rows.length})
@@ -546,7 +546,7 @@ export default function Grid({ onChanged, toast }) {
                {groups.map(g => (
                  <div 
                    key={g.key}
-                   style={{ padding: '8px 12px', cursor: 'pointer', borderRadius: '6px', background: activeGroupKey === g.key ? 'var(--accent)' : 'transparent', color: activeGroupKey === g.key ? '#fff' : 'var(--text)', fontSize: '14px', transition: 'all 0.15s' }}
+                   style={{ padding: '8px 12px', cursor: 'pointer', borderRadius: '6px', background: activeGroupKey === g.key ? 'var(--accent)' : 'transparent', color: activeGroupKey === g.key ? '#fff' : '#333', fontSize: '14px', transition: 'all 0.15s' }}
                    onClick={() => setActiveGroupKey(g.key)}
                    title={g.fullLabel}
                  >
