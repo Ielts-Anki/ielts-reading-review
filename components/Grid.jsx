@@ -484,7 +484,7 @@ export default function Grid({ onChanged, toast }) {
           </button>
         </div>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+        <div className="header-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input 
               type="text" 
@@ -529,10 +529,10 @@ export default function Grid({ onChanged, toast }) {
           Bấm “+ Thêm bài” hoặc “Đồng bộ” từ Google Sheets.
         </div>
       ) : (
-        <div style={{ display: 'flex', gap: '20px', marginTop: '16px', alignItems: 'flex-start' }}>
+        <div className="grid-layout" style={{ display: 'flex', gap: '20px', marginTop: '16px', alignItems: 'flex-start' }}>
           
           {/* SIDEBAR TABS */}
-          <div style={{ width: '220px', flexShrink: 0, paddingRight: '12px', borderRight: '1px solid var(--border)' }}>
+          <div className="grid-sidebar" style={{ width: '220px', flexShrink: 0, paddingRight: '12px', borderRight: '1px solid var(--border)' }}>
              <div 
                style={{ padding: '8px 12px', cursor: 'pointer', borderRadius: '6px', marginBottom: '4px', background: activeGroupKey === "ALL" ? 'var(--plum)' : 'transparent', color: activeGroupKey === "ALL" ? '#fff' : '#333', fontWeight: activeGroupKey === "ALL" ? 'bold' : 'normal', transition: 'all 0.15s' }}
                onClick={() => setActiveGroupKey("ALL")}
@@ -564,7 +564,7 @@ export default function Grid({ onChanged, toast }) {
              
              {/* Group Header (if not ALL) */}
              {activeGroup && activeGroupKey !== "ALL" && (
-               <div style={{ background: '#f8f9fa', padding: '16px', borderRadius: '8px', marginBottom: '16px', display: 'flex', gap: '16px', border: '1px solid var(--border)' }}>
+               <div className="group-header" style={{ background: '#f8f9fa', padding: '16px', borderRadius: '8px', marginBottom: '16px', display: 'flex', gap: '16px', border: '1px solid var(--border)' }}>
                   <div style={{ flex: 1 }}>
                      <div style={{ fontSize: '11px', color: '#666', marginBottom: '4px', fontWeight: 'bold', textTransform: 'uppercase' }}>Nguồn</div>
                      <AutoArea className="cell-area" style={{ background: '#fff' }} value={activeGroup.source} onChange={v => updateGroupInfo("source", v)} />
