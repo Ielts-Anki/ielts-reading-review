@@ -55,13 +55,23 @@ export async function POST(request) {
       try {
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
         const ctx = context ? `(ngữ cảnh từ bài đọc IELTS: "${context}")` : "";
+        
+        const validTopics = [
+          "Appearance", "Personality", "Family", "Food", "Health", "Sports", 
+          "Education", "Jobs", "Technology", "Environment", "Travel", 
+          "Transportation", "Crime", "Economy", "Business", "Science", 
+          "Biology", "Genetics", "Psychology", "Medicine", "Animals", 
+          "Agriculture", "History", "Culture", "Architecture", "Geography", 
+          "Weather", "Space", "Government", "Media", "Other"
+        ];
+
         const prompt = `Bạn là chuyên gia IELTS.
 Phân tích từ vựng tiếng Anh sau: "${word}" ${ctx}.
 Trả về đúng định dạng JSON sau, tuyệt đối không có markdown code block:
 {
   "meaning": "nghĩa tiếng Việt (phải dựa theo ngữ cảnh trong bài đọc)",
   "collocations": "liệt kê 3-4 collocations hay gặp trong IELTS của từ này, mỗi cụm một dòng",
-  "topic": "chọn 1 chủ đề IELTS phù hợp nhất",
+  "topic": "bắt buộc chọn ĐÚNG 1 trong 31 chủ đề sau, không được tự bịa chủ đề khác: ${validTopics.join(", ")}",
   ${!result.example ? `"example": "tự tạo 1 câu ví dụ tiếng Anh thật hay chứa từ này (do từ điển không có)",` : ""}
   "translatedExample": "bản dịch tiếng Việt của câu ví dụ: ${result.example || "câu bạn vừa tạo"}"
 }`;

@@ -480,7 +480,7 @@ export default function Grid({ onChanged, toast }) {
             Ô <b>Vocabulary</b> (mỗi dòng <span className="mono">từ : nghĩa</span>) tự sinh thẻ ôn.
           </p>
           <button className="btn" style={{ marginTop: '12px', background: 'var(--accent)', color: 'white' }} onClick={() => setShowParser(true)}>
-             🔍 Mở Visual Parser (Phân tích câu)
+             Mở Visual Parser (Phân tích câu)
           </button>
         </div>
         
