@@ -73,7 +73,7 @@ Cấu trúc JSON bắt buộc:
 {
   "meaning": "nghĩa tiếng Việt (dựa theo ngữ cảnh)",
   "collocations": "3-4 collocations IELTS phổ biến, mỗi cụm 1 dòng",
-  "topic": "chọn ĐÚNG 1 chủ đề (không tự bịa): ${validTopics.join(", ")}",
+  "topic": "chọn ĐÚNG 1 chủ đề (nếu là trạng từ, từ nối, từ chỉ mức độ chung chung như virtually, completely... thì BẮT BUỘC cho vào nhóm General. Các từ chuyên ngành mới được cho vào chủ đề cụ thể): ${validTopics.join(", ")}, General",
   ${!result.example ? `"example": "1 câu ví dụ tiếng Anh hay",` : ""}
   "translatedExample": "bản dịch tiếng Việt của câu ví dụ: ${result.example || "câu trên"}"
 }`;

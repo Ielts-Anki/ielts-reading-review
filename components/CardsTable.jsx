@@ -49,7 +49,7 @@ export default function CardsTable({ onChanged, toast }) {
   }
   
   async function enrichAll() {
-    const targets = cards.filter(c => !c.ipa || !c.topic || c.topic === "General" || c.topic === "Chưa phân loại" || c.topic === "Error");
+    const targets = cards.filter(c => !c.topic || c.topic === "General" || c.topic === "Chưa phân loại" || c.topic === "Error" || c.topic.includes("Lỗi"));
     if (targets.length === 0) {
       toast && toast("Tất cả thẻ đã có dữ liệu AI đầy đủ!");
       return;

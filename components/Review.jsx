@@ -346,10 +346,15 @@ export default function Review({ onChanged, toast }) {
                 </div>
               )}
               
-              {card.collocations && (
-                <div style={{ marginTop: '12px' }}>
-                   <div style={{ fontSize: '11px', color: '#999', textTransform: 'uppercase', fontWeight: 'bold' }}>🔗 Collocations</div>
-                   <div style={{ fontSize: '14px', color: '#333', whiteSpace: 'pre-wrap' }}>{card.collocations}</div>
+              {card.collocations && !card.collocations.includes("Lỗi") && (
+                <div style={{ marginTop: '20px', textAlign: 'left', background: '#f8f9fa', padding: '15px', borderRadius: '10px' }}>
+                   <div style={{ fontSize: '12px', color: '#888', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase' }}>🔗 Collocations</div>
+                   <div style={{ fontSize: '14px', color: '#333', whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{card.collocations}</div>
+                </div>
+              )}
+              {card.collocations && card.collocations.includes("Lỗi") && (
+                <div style={{ marginTop: '20px', textAlign: 'center', background: '#fff3f3', padding: '10px', borderRadius: '10px' }}>
+                   <div style={{ fontSize: '12px', color: '#e74c3c', fontWeight: 'bold' }}>⚠️ AI chưa điền thành công (Hãy ấn nút quét lại ở tab Từ Vựng)</div>
                 </div>
               )}
               
