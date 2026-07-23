@@ -66,16 +66,16 @@ export async function POST(request) {
           "Weather", "Space", "Government", "Media", "Other"
         ];
 
-        const prompt = `Bạn là chuyên gia IELTS.
-Nhiệm vụ: Phân tích từ vựng tiếng Anh "${word}" ${ctx}.
-YÊU CẦU QUAN TRỌNG: BẮT BUỘC CHỈ trả về đúng 1 object JSON duy nhất, tuyệt đối KHÔNG chứa văn bản giải thích, KHÔNG chứa chữ "Role", KHÔNG chứa dấu backtick ( \`\`\` ).
-Cấu trúc JSON bắt buộc:
+        const prompt = `You are a JSON-only dictionary API.
+Task: Analyze the English word "${word}" ${ctx}.
+Output exactly one valid JSON object. Do not output any markdown, do not output any conversational text.
+
 {
-  "meaning": "nghĩa tiếng Việt (dựa theo ngữ cảnh)",
-  "collocations": "3-4 collocations IELTS phổ biến, mỗi cụm 1 dòng",
-  "topic": "chọn ĐÚNG 1 chủ đề (nếu là trạng từ, từ nối, từ chỉ mức độ chung chung như virtually, completely... thì BẮT BUỘC cho vào nhóm General. Các từ chuyên ngành mới được cho vào chủ đề cụ thể): ${validTopics.join(", ")}, General",
-  ${!result.example ? `"example": "1 câu ví dụ tiếng Anh hay",` : ""}
-  "translatedExample": "bản dịch tiếng Việt của câu ví dụ: ${result.example || "câu trên"}"
+  "meaning": "Vietnamese meaning (based on context)",
+  "collocations": "3-4 IELTS collocations, one per line",
+  "topic": "Choose EXACTLY ONE from: ${validTopics.join(", ")}, General (for generic words)",
+  ${!result.example ? `"example": "Create 1 good English example sentence",` : ""}
+  "translatedExample": "Vietnamese translation of the example sentence: ${result.example || "the sentence you created"}"
 }`;
 
         // Bước 1: Tự động dò danh sách Model mà API Key này được phép dùng
