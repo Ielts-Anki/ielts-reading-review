@@ -210,10 +210,14 @@ export default function CardsTable({ onChanged, toast }) {
                                {c.translatedExample && <div style={{ marginTop: '2px', color: '#888', fontSize: '12px' }}>↳ 🇻🇳 {c.translatedExample}</div>}
                              </div>
                           )}
-                          {c.collocations && !c.collocations.includes("Lỗi") && !c.collocations.includes("Cần cấu hình") && (
+                          {c.collocations && (
                              <div style={{ marginTop: '10px' }}>
-                                <div style={{ fontSize: '10px', color: '#999', textTransform: 'uppercase', fontWeight: 'bold' }}>🔗 Collocations</div>
-                                <div style={{ fontSize: '12px', color: '#333', whiteSpace: 'pre-wrap' }}>{c.collocations}</div>
+                                <div style={{ fontSize: '10px', color: c.collocations.includes("Lỗi") ? '#e74c3c' : '#999', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                                  {c.collocations.includes("Lỗi") ? "⚠️ Lỗi" : "🔗 Collocations"}
+                                </div>
+                                <div style={{ fontSize: '12px', color: c.collocations.includes("Lỗi") ? '#c0392b' : '#333', whiteSpace: 'pre-wrap' }}>
+                                  {c.collocations}
+                                </div>
                              </div>
                           )}
                         </td>

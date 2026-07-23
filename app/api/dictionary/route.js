@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(request) {
   try {
@@ -53,7 +53,8 @@ export async function POST(request) {
     // 2. Lấy Topic, Collocations và Nghĩa Tiếng Việt bằng Gemini AI
     if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() !== "") {
       try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const ctx = context ? `(ngữ cảnh từ bài đọc IELTS: "${context}")` : "";
         
         const validTopics = [
@@ -76,15 +77,24 @@ Trả về đúng định dạng JSON sau, tuyệt đối không có markdown co
   "translatedExample": "bản dịch tiếng Việt của câu ví dụ: ${result.example || "câu bạn vừa tạo"}"
 }`;
 
-        const response = await ai.models.generateContent({
-          model: 'gemini-1.5-flash',
-          contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-          }
+        const aiResult = await model.generateContent({
+           contents: [{ role: "user", parts: [{ text: prompt }] }],
+           generationConfig: {
+              responseMimeType: "application/json"
+           }
         });
 
-        const text = response.text();
+        let text = aiResult.response.text();
+        
+        // Remove markdown block if Gemini still returns it
+        if (text.startsWith("```json")) {
+           text = text.replace(/^```json\n?/, "");
+           text = text.replace(/\n?```$/, "");
+        } else if (text.startsWith("```")) {
+           text = text.replace(/^```\n?/, "");
+           text = text.replace(/\n?```$/, "");
+        }
+        
         const aiData = JSON.parse(text);
         
         if (aiData.meaning) result.meaning = aiData.meaning;

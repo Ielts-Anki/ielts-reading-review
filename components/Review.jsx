@@ -309,7 +309,7 @@ export default function Review({ onChanged, toast }) {
           <div className="prog-track"><div className="prog-fill" style={{ width: pct + "%" }} /></div>
         </div>
 
-        <div className="flip" onClick={() => !flipped && setFlipped(true)}>
+        <div className="flip" onClick={() => setFlipped(!flipped)} style={{ maxWidth: '600px', margin: '0 auto' }}>
           <div className={"flip-inner" + (flipped ? " is-flipped" : "")}>
             <div className="face front">
               <div className="ctx">{card.lessonTitle || "—"} · còn {queue.length}</div>
