@@ -66,17 +66,20 @@ export async function POST(request) {
           "Weather", "Space", "Government", "Media", "Other"
         ];
 
-        const prompt = `You are a JSON-only dictionary API.
+        const prompt = `You are a dictionary API.
 Task: Analyze the English word "${word}" ${ctx}.
-Output exactly one valid JSON object. Do not output any markdown, do not output any conversational text.
+You must respond with ONLY a raw JSON object. Do not output markdown, do not use backticks, do not write any introductory text like "Here is the JSON".
 
+Example expected output format (must be valid JSON):
 {
-  "meaning": "Vietnamese meaning (based on context)",
+  "meaning": "Vietnamese meaning based on context",
   "collocations": "3-4 IELTS collocations, one per line",
   "topic": "Choose EXACTLY ONE from: ${validTopics.join(", ")}, General (for generic words)",
-  ${!result.example ? `"example": "Create 1 good English example sentence",` : ""}
-  "translatedExample": "Vietnamese translation of the example sentence: ${result.example || "the sentence you created"}"
-}`;
+  "example": "An English example sentence",
+  "translatedExample": "Vietnamese translation of the example sentence"
+}
+
+Now, generate the JSON for the word "${word}":`;
 
         // Bước 1: Tự động dò danh sách Model mà API Key này được phép dùng
         const key = process.env.GEMINI_API_KEY.trim();
