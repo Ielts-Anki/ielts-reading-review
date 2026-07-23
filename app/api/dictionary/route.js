@@ -89,25 +89,51 @@ Trả về đúng định dạng JSON sau, tuyệt đối không có markdown co
         const allowedModels = listData.models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"));
         if (allowedModels.length === 0) throw new Error("Tài khoản của bạn không có model nào hỗ trợ tạo văn bản.");
 
-        // Ưu tiên chọn model gemini-1.5-flash, rồi đến 2.0-flash, rồi gemini-1.0-pro
-        let chosenModel = allowedModels.find(m => m.name.includes("gemini-1.5-flash"));
-        if (!chosenModel) chosenModel = allowedModels.find(m => m.name.includes("gemini-2.0-flash"));
-        if (!chosenModel) chosenModel = allowedModels.find(m => m.name.includes("gemini-1.0-pro"));
-        if (!chosenModel) chosenModel = allowedModels[0]; // Bí quá thì lấy đại model đầu tiên
+        // Xếp hạng các model ưu tiên
+        const rankedModelNames = [];
+        const prefer = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.0-pro", "gemini-pro"];
+        for (const p of prefer) {
+            const match = allowedModels.find(m => m.name.includes(p));
+            if (match && !rankedModelNames.includes(match.name)) {
+                rankedModelNames.push(match.name);
+            }
+        }
+        for (const m of allowedModels) {
+            if (!rankedModelNames.includes(m.name)) rankedModelNames.push(m.name);
+        }
 
-        // Bước 2: Gọi trực tiếp HTTP tới Google API (bỏ qua thư viện để tránh lỗi phiên bản)
-        const apiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/${chosenModel.name}:generateContent?key=${key}`, {
-           method: "POST",
-           headers: { "Content-Type": "application/json" },
-           body: JSON.stringify({
-              contents: [{ role: "user", parts: [{ text: prompt }] }],
-              generationConfig: { responseMimeType: "application/json" }
-           })
-        });
+        // Bước 2: Thử từng model, nếu gặp lỗi 429 hoặc 404 thì thử model tiếp theo
+        let apiData = null;
+        let lastErrStr = "";
         
-        const apiData = await apiRes.json();
-        if (apiData.error) {
-           throw new Error(`[Lỗi Google ${apiData.error.code} - ${chosenModel.name}] ${apiData.error.message}`);
+        for (const mName of rankedModelNames) {
+           const apiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/${mName}:generateContent?key=${key}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                 contents: [{ role: "user", parts: [{ text: prompt }] }],
+                 generationConfig: mName.includes("gemini-pro") && !mName.includes("1.5") ? {} : { responseMimeType: "application/json" }
+              })
+           });
+           
+           apiData = await apiRes.json();
+           if (apiData.error) {
+              const code = apiData.error.code;
+              lastErrStr = `[Lỗi Google ${code} - ${mName}] ${apiData.error.message}`;
+              // Nếu là lỗi 429 (vượt quá giới hạn) hoặc 404 (không tìm thấy) hoặc 403 (không có quyền), thử model khác
+              if (code === 429 || code === 404 || code === 403) {
+                  apiData = null; // xoá để vòng lặp chạy tiếp
+                  continue;
+              }
+              // Các lỗi khác (như sai cú pháp JSON) thì văng lỗi luôn
+              throw new Error(lastErrStr);
+           }
+           // Thành công
+           break;
+        }
+
+        if (!apiData) {
+            throw new Error(lastErrStr || "Tất cả các model đều bị từ chối truy cập.");
         }
 
         let text = apiData.candidates[0].content.parts[0].text;
