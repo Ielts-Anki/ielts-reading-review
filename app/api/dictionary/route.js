@@ -120,8 +120,8 @@ Trả về đúng định dạng JSON sau, tuyệt đối không có markdown co
            if (apiData.error) {
               const code = apiData.error.code;
               lastErrStr = `[Lỗi Google ${code} - ${mName}] ${apiData.error.message}`;
-              // Nếu là lỗi 429 (vượt quá giới hạn) hoặc 404 (không tìm thấy) hoặc 403 (không có quyền), thử model khác
-              if (code === 429 || code === 404 || code === 403) {
+              // Nếu là lỗi 429 (vượt quá giới hạn) hoặc 404 (không tìm thấy) hoặc 403 (không có quyền) hoặc 400 (model không hỗ trợ TEXT)
+              if (code === 429 || code === 404 || code === 403 || code === 400) {
                   apiData = null; // xoá để vòng lặp chạy tiếp
                   continue;
               }
