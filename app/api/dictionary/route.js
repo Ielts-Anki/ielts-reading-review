@@ -77,35 +77,40 @@ Trả về đúng định dạng JSON sau, tuyệt đối không có markdown co
   "translatedExample": "bản dịch tiếng Việt của câu ví dụ: ${result.example || "câu bạn vừa tạo"}"
 }`;
 
-        let aiResult = null;
-        let lastErr = null;
-        const models = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash", "gemini-1.5-pro-latest", "gemini-pro"];
-        
-        for (const m of models) {
-          try {
-             const model = genAI.getGenerativeModel({ model: m });
-             // gemini-pro does not support responseMimeType in some regions, so we omit it for gemini-pro
-             const config = m === "gemini-pro" ? {} : { responseMimeType: "application/json" };
-             
-             aiResult = await model.generateContent({
-                contents: [{ role: "user", parts: [{ text: prompt }] }],
-                generationConfig: config
-             });
-             break; // success
-          } catch (e) {
-             lastErr = e;
-             const msg = e.message || "";
-             // Tiếp tục fallback nếu gặp lỗi 404 (Không tìm thấy model) hoặc 429 (Bị chặn/vượt quá giới hạn)
-             // Lưu ý: limit: 0 ở một số tài khoản sẽ văng ra 429 ngay từ request đầu tiên
-             if (!msg.includes("404") && !msg.includes("429") && !msg.includes("403")) {
-                break; 
-             }
-          }
+        // Bước 1: Tự động dò danh sách Model mà API Key này được phép dùng
+        const key = process.env.GEMINI_API_KEY.trim();
+        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+        const listData = await listRes.json();
+        if (!listData.models) {
+             throw new Error("Lỗi xác thực API Key: " + JSON.stringify(listData));
         }
-        
-        if (!aiResult) throw lastErr;
 
-        let text = aiResult.response.text();
+        // Lọc các model có hỗ trợ generateContent
+        const allowedModels = listData.models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"));
+        if (allowedModels.length === 0) throw new Error("Tài khoản của bạn không có model nào hỗ trợ tạo văn bản.");
+
+        // Ưu tiên chọn model gemini-1.5-flash, rồi đến 2.0-flash, rồi gemini-1.0-pro
+        let chosenModel = allowedModels.find(m => m.name.includes("gemini-1.5-flash"));
+        if (!chosenModel) chosenModel = allowedModels.find(m => m.name.includes("gemini-2.0-flash"));
+        if (!chosenModel) chosenModel = allowedModels.find(m => m.name.includes("gemini-1.0-pro"));
+        if (!chosenModel) chosenModel = allowedModels[0]; // Bí quá thì lấy đại model đầu tiên
+
+        // Bước 2: Gọi trực tiếp HTTP tới Google API (bỏ qua thư viện để tránh lỗi phiên bản)
+        const apiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/${chosenModel.name}:generateContent?key=${key}`, {
+           method: "POST",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: "application/json" }
+           })
+        });
+        
+        const apiData = await apiRes.json();
+        if (apiData.error) {
+           throw new Error(`[Lỗi Google ${apiData.error.code} - ${chosenModel.name}] ${apiData.error.message}`);
+        }
+
+        let text = apiData.candidates[0].content.parts[0].text;
         
         // Remove markdown block if Gemini still returns it
         if (text.startsWith("```json")) {
