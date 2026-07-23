@@ -4,15 +4,15 @@ import { parseVocab } from "@/lib/srs.mjs";
 import nlp from "compromise";
 
 const COLS = [
-  { key: "source", label: "Nguồn", w: 120 },
-  { key: "title", label: "Tên bài", w: 150 },
-  { key: "myAnswer", label: "Tôi chọn", w: 80 },
-  { key: "correctAnswer", label: "Đáp án đúng", w: 90 },
-  { key: "mistake", label: "Mistake — sai gì / vì sao sai", w: 250 },
-  { key: "info", label: "Thông tin trong bài", w: 320 },
-  { key: "paraphrase", label: "Paraphrase", w: 200 },
-  { key: "vocabRaw", label: "Vocabulary  ( từ : nghĩa )", w: 220, vocab: true },
-  { key: "link", label: "Link/Web", w: 80 },
+  { key: "source", label: "🏷️ Nguồn", w: 120 },
+  { key: "title", label: "📄 Tên bài", w: 150 },
+  { key: "myAnswer", label: "👤 Tôi chọn", w: 80 },
+  { key: "correctAnswer", label: "✅ Đáp án đúng", w: 90 },
+  { key: "mistake", label: "❌ Mistake — sai gì / vì sao sai", w: 250 },
+  { key: "info", label: "📖 Thông tin trong bài", w: 320 },
+  { key: "paraphrase", label: "🔄 Paraphrase", w: 200 },
+  { key: "vocabRaw", label: "📚 Vocabulary  ( từ : nghĩa )", w: 220, vocab: true },
+  { key: "link", label: "🔗 Link/Web", w: 80 },
 ];
 
 function AutoArea({ value, onChange, onBlur, className, style }) {

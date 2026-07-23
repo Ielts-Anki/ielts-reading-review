@@ -331,31 +331,31 @@ export default function Review({ onChanged, toast }) {
               
               <div className="face-divider" />
               
-              <div className="meaning" style={{ fontSize: '18px', fontWeight: '500' }}>{card.meaning || card.back || "(chưa nhập nghĩa)"}</div>
+              <div className="meaning" style={{ fontSize: '18px', fontWeight: '500' }}>🇻🇳 {card.meaning || card.back || "(chưa nhập nghĩa)"}</div>
               
               {card.engMeaning && (
                 <div style={{ marginTop: '8px', fontSize: '14px', color: '#9b59b6', fontWeight: '500' }}>
-                  {card.engMeaning}
+                  🇬🇧 {card.engMeaning}
                 </div>
               )}
               
               {card.example && (
                 <div style={{ marginTop: '12px', fontSize: '14px', color: '#555', fontStyle: 'italic', borderLeft: '3px solid #ccc', paddingLeft: '8px' }}>
-                  <div>{card.example}</div>
-                  {card.translatedExample && <div style={{ marginTop: '4px', color: '#888', fontSize: '13px' }}>{card.translatedExample}</div>}
+                  <div>📝 {card.example}</div>
+                  {card.translatedExample && <div style={{ marginTop: '4px', color: '#888', fontSize: '13px' }}>↳ 🇻🇳 {card.translatedExample}</div>}
                 </div>
               )}
               
               {card.collocations && (
                 <div style={{ marginTop: '12px' }}>
-                   <div style={{ fontSize: '11px', color: '#999', textTransform: 'uppercase', fontWeight: 'bold' }}>Collocations</div>
+                   <div style={{ fontSize: '11px', color: '#999', textTransform: 'uppercase', fontWeight: 'bold' }}>🔗 Collocations</div>
                    <div style={{ fontSize: '14px', color: '#333', whiteSpace: 'pre-wrap' }}>{card.collocations}</div>
                 </div>
               )}
               
               {card.topic && (
                 <div style={{ marginTop: '8px', display: 'inline-block', background: '#eee', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', color: '#555' }}>
-                  {card.topic}
+                  🏷️ {card.topic}
                 </div>
               )}
               

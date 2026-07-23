@@ -20,7 +20,8 @@ export async function POST(request) {
 
     // 1. Lấy thông tin cơ bản từ Free Dictionary API
     try {
-      const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+      const cleanWord = word.replace(/\s*\([^)]*\)\s*/g, '').trim();
+      const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord)}`);
       if (dictRes.ok) {
         const data = await dictRes.json();
         const entry = data[0];
@@ -50,7 +51,7 @@ export async function POST(request) {
     }
 
     // 2. Lấy Topic, Collocations và Nghĩa Tiếng Việt bằng Gemini AI
-    if (process.env.GEMINI_API_KEY) {
+    if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() !== "") {
       try {
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
         const ctx = context ? `(ngữ cảnh từ bài đọc IELTS: "${context}")` : "";
@@ -84,6 +85,8 @@ Trả về đúng định dạng JSON sau, tuyệt đối không có markdown co
 
       } catch (err) {
         console.log("Gemini API error:", err);
+        result.collocations = "⚠️ Lỗi AI: " + err.message;
+        result.topic = "Error";
       }
     } else {
        // Nếu không có API key thì nhắc nhở
