@@ -86,6 +86,12 @@ export default function CardsTable({ onChanged, toast }) {
          
          setCards([...newCards]);
          successCount++;
+         
+         // Giới hạn 15 requests/minute của Google API Free Tier
+         // Tạm dừng 4.1s sau mỗi request để không bị khoá
+         if (i < targets.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 4100));
+         }
        } catch (err) {
          console.error("Enrich error for", card.front, err);
        }
