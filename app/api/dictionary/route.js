@@ -93,20 +93,20 @@ Now, generate the JSON for the word "${word}":`;
         const allowedModels = listData.models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"));
         if (allowedModels.length === 0) throw new Error("Tài khoản của bạn không có model nào hỗ trợ tạo văn bản.");
 
-        // Xếp hạng các model ưu tiên
+        // Bước 2: Chỉ sử dụng các model flash vì model pro cũ không tuân thủ định dạng JSON
         const rankedModelNames = [];
-        const prefer = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.0-pro", "gemini-pro"];
+        const prefer = ["gemini-2.0-flash", "gemini-1.5-flash"];
         for (const p of prefer) {
             const match = allowedModels.find(m => m.name.includes(p));
             if (match && !rankedModelNames.includes(match.name)) {
                 rankedModelNames.push(match.name);
             }
         }
-        for (const m of allowedModels) {
-            if (!rankedModelNames.includes(m.name)) rankedModelNames.push(m.name);
+        
+        if (rankedModelNames.length === 0) {
+           throw new Error("Không tìm thấy model Flash nào khả dụng. Vui lòng kiểm tra lại API Key.");
         }
 
-        // Bước 2: Thử từng model, nếu gặp lỗi 429 hoặc 404 thì thử model tiếp theo
         let apiData = null;
         let lastErrStr = "";
         
