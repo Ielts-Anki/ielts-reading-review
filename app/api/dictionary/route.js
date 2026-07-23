@@ -77,12 +77,28 @@ Trả về đúng định dạng JSON sau, tuyệt đối không có markdown co
   "translatedExample": "bản dịch tiếng Việt của câu ví dụ: ${result.example || "câu bạn vừa tạo"}"
 }`;
 
-        const aiResult = await model.generateContent({
-           contents: [{ role: "user", parts: [{ text: prompt }] }],
-           generationConfig: {
-              responseMimeType: "application/json"
-           }
-        });
+        let aiResult = null;
+        let lastErr = null;
+        const models = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash", "gemini-1.5-pro-latest", "gemini-pro"];
+        
+        for (const m of models) {
+          try {
+             const model = genAI.getGenerativeModel({ model: m });
+             // gemini-pro does not support responseMimeType in some regions, so we omit it for gemini-pro
+             const config = m === "gemini-pro" ? {} : { responseMimeType: "application/json" };
+             
+             aiResult = await model.generateContent({
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: config
+             });
+             break; // success
+          } catch (e) {
+             lastErr = e;
+             if (!e.message.includes("404")) break; // if it's not a 404 (e.g. invalid key), stop trying
+          }
+        }
+        
+        if (!aiResult) throw lastErr;
 
         let text = aiResult.response.text();
         
