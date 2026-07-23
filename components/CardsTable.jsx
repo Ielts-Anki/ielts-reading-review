@@ -73,6 +73,17 @@ export default function CardsTable({ onChanged, toast }) {
          if (data.error) throw new Error(data.error);
 
          const updatedCard = { ...card, ...data };
+         
+         if (updatedCard.topic === "Error" && updatedCard.collocations && updatedCard.collocations.includes("429 Too Many Requests")) {
+            const match = updatedCard.collocations.match(/retry in ([\d\.]+)s/);
+            let delayMs = 30000;
+            if (match && match[1]) delayMs = Math.ceil(parseFloat(match[1])) * 1000 + 2000;
+            toast && toast(`Google API báo quá tải. Đang tạm dừng ${Math.round(delayMs/1000)}s rồi tự động thử lại...`);
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+            i--; // Thử lại thẻ này
+            continue;
+         }
+
          if (!updatedCard.meaning) updatedCard.meaning = card.back;
 
          await fetch(`/api/cards/${card.id}`, {
