@@ -20,6 +20,36 @@ export default function CardsTable({ onChanged, toast }) {
   
   const [enriching, setEnriching] = useState({ active: false, current: 0, total: 0 });
 
+  const [editingCard, setEditingCard] = useState(null);
+  const [editForm, setEditForm] = useState({});
+
+  function startEdit(c) {
+    setEditingCard(c.id);
+    setEditForm({
+      meaning: c.meaning || "",
+      example: c.example || "",
+      translatedExample: c.translatedExample || "",
+      collocations: c.collocations || "",
+      topic: c.topic || "Chưa phân loại"
+    });
+  }
+
+  async function saveEdit(id) {
+    const updatedCard = { ...cards.find((c) => c.id === id), ...editForm };
+    await fetch(`/api/cards/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedCard)
+    });
+    setCards((cs) => cs.map((c) => (c.id === id ? updatedCard : c)));
+    setEditingCard(null);
+    onChanged && onChanged();
+    toast && toast("Đã lưu chỉnh sửa");
+  }
+
+  function cancelEdit() {
+    setEditingCard(null);
+  }
   async function refresh() {
     setLoading(true);
     const r = await fetch("/api/cards");
@@ -124,14 +154,21 @@ export default function CardsTable({ onChanged, toast }) {
   const groups = {};
   list.forEach(c => {
     let t = c.topic;
-    if (!t || t === "General" || t === "Error") t = "Chưa phân loại";
+    if (!t) t = "Chưa phân loại";
+    else if (t === "General") t = "Từ vựng chung";
+    else if (t === "Error" || t.includes("Lỗi")) t = "Lỗi AI";
+    
     if (!groups[t]) groups[t] = [];
     groups[t].push(c);
   });
   
   const groupKeys = Object.keys(groups).sort((a,b) => {
+    if (a === "Lỗi AI") return 1;
+    if (b === "Lỗi AI") return -1;
     if (a === "Chưa phân loại") return 1;
     if (b === "Chưa phân loại") return -1;
+    if (a === "Từ vựng chung") return 1;
+    if (b === "Từ vựng chung") return -1;
     return a.localeCompare(b);
   });
 
@@ -217,25 +254,43 @@ export default function CardsTable({ onChanged, toast }) {
                           {c.pos && <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#3498db', fontStyle: 'italic', marginTop: '4px' }}>{c.pos}</div>}
                         </td>
                         <td style={{ verticalAlign: 'top' }}>
-                          <div style={{ fontSize: '15px', fontWeight: '600' }}>🇻🇳 {c.meaning || c.back || "—"}</div>
-                          {c.engMeaning && (
-                             <div style={{ fontSize: '13px', color: '#9b59b6', marginTop: '6px' }}>🇬🇧 {c.engMeaning}</div>
-                          )}
-                          {c.example && (
-                             <div style={{ fontSize: '13px', color: '#555', fontStyle: 'italic', borderLeft: '2px solid #ccc', paddingLeft: '8px', marginTop: '8px' }}>
-                               <div>📝 {c.example}</div>
-                               {c.translatedExample && <div style={{ marginTop: '2px', color: '#888', fontSize: '12px' }}>↳ 🇻🇳 {c.translatedExample}</div>}
-                             </div>
-                          )}
-                          {c.collocations && (
-                             <div style={{ marginTop: '10px' }}>
-                                <div style={{ fontSize: '10px', color: c.collocations.includes("Lỗi") ? '#e74c3c' : '#999', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                                  {c.collocations.includes("Lỗi") ? "⚠️ Lỗi" : "🔗 Collocations"}
-                                </div>
-                                <div style={{ fontSize: '12px', color: c.collocations.includes("Lỗi") ? '#c0392b' : '#333', whiteSpace: 'pre-wrap' }}>
-                                  {c.collocations}
-                                </div>
-                             </div>
+                          {editingCard === c.id ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              <input value={editForm.meaning} onChange={e => setEditForm({...editForm, meaning: e.target.value})} placeholder="Nghĩa tiếng Việt" style={{width: '100%', padding: '6px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '14px'}} />
+                              <textarea value={editForm.collocations} onChange={e => setEditForm({...editForm, collocations: e.target.value})} placeholder="Collocations (mỗi cụm 1 dòng)" style={{width: '100%', padding: '6px', border: '1px solid #ccc', borderRadius: '4px', minHeight: '80px', fontSize: '13px'}} />
+                              <input value={editForm.example} onChange={e => setEditForm({...editForm, example: e.target.value})} placeholder="Ví dụ tiếng Anh" style={{width: '100%', padding: '6px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '13px'}} />
+                              <input value={editForm.translatedExample} onChange={e => setEditForm({...editForm, translatedExample: e.target.value})} placeholder="Dịch câu ví dụ" style={{width: '100%', padding: '6px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '13px'}} />
+                              <select value={editForm.topic} onChange={e => setEditForm({...editForm, topic: e.target.value})} style={{width: '100%', padding: '6px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '13px'}}>
+                                {["Chưa phân loại", "General", "Appearance", "Personality", "Family", "Food", "Health", "Housing", "Travel", "Education", "Work", "Money", "Technology", "Science", "Nature", "Environment", "Animals", "Culture", "Arts", "Sports", "Politics", "Law", "Crime", "Economy", "Business", "Marketing", "Psychology", "Sociology", "History", "Geography", "Biology", "Chemistry", "Physics", "Math", "Engineering", "Architecture", "Literature", "Language", "Music", "Fashion", "Transportation", "Communication", "Entertainment", "Religion", "Philosophy", "Ethics", "Medicine", "Agriculture", "Industry", "Energy", "Weather", "Space", "Government", "Media", "Other"].map(t => <option key={t} value={t}>{t}</option>)}
+                              </select>
+                              <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                <button onClick={() => saveEdit(c.id)} style={{ padding: '6px 16px', background: '#2ecc71', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Lưu</button>
+                                <button onClick={cancelEdit} style={{ padding: '6px 16px', background: '#95a5a6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Hủy</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div style={{ fontSize: '15px', fontWeight: '600' }}>🇻🇳 {c.meaning || c.back || "—"}</div>
+                              {c.engMeaning && (
+                                 <div style={{ fontSize: '13px', color: '#9b59b6', marginTop: '6px' }}>🇬🇧 {c.engMeaning}</div>
+                              )}
+                              {c.example && (
+                                 <div style={{ fontSize: '13px', color: '#555', fontStyle: 'italic', borderLeft: '2px solid #ccc', paddingLeft: '8px', marginTop: '8px' }}>
+                                   <div>📝 {c.example}</div>
+                                   {c.translatedExample && <div style={{ marginTop: '2px', color: '#888', fontSize: '12px' }}>↳ 🇻🇳 {c.translatedExample}</div>}
+                                 </div>
+                              )}
+                              {c.collocations && (
+                                 <div style={{ marginTop: '10px' }}>
+                                    <div style={{ fontSize: '10px', color: c.collocations.includes("Lỗi") ? '#e74c3c' : '#999', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                                      {c.collocations.includes("Lỗi") ? "⚠️ Lỗi" : "🔗 Collocations"}
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: c.collocations.includes("Lỗi") ? '#c0392b' : '#333', whiteSpace: 'pre-wrap' }}>
+                                      {c.collocations}
+                                    </div>
+                                 </div>
+                              )}
+                            </>
                           )}
                         </td>
                         <td style={{ color: "var(--ink-soft)", verticalAlign: 'top', fontSize: '13px' }}>{c.lessonTitle || ""}</td>
@@ -243,7 +298,8 @@ export default function CardsTable({ onChanged, toast }) {
                            <span className={"due-tag " + d.cls}>{d.t}</span>
                            <div style={{ fontSize: '11px', color: '#999', marginTop: '6px' }}>Đã ôn {c.reps} lần</div>
                         </td>
-                        <td style={{ verticalAlign: 'top' }}>
+                        <td style={{ verticalAlign: 'top', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <button className="del-x" style={{ color: '#3498db', fontSize: '16px' }} title="Sửa thẻ" onClick={() => startEdit(c)}>✏️</button>
                           <button className="del-x" title="Xoá thẻ" onClick={() => del(c.id)}>×</button>
                         </td>
                       </tr>
