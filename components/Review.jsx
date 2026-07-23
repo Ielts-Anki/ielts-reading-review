@@ -124,6 +124,41 @@ export default function Review({ onChanged, toast }) {
   const [done, setDone] = useState(0);
   const [justFinished, setJustFinished] = useState(0);
 
+  const [enriching, setEnriching] = useState(false);
+
+  async function enrichCard(card) {
+    if (enriching) return;
+    setEnriching(true);
+    toast && toast("AI đang phân tích từ...");
+    try {
+      const lesson = lessons.find(l => l.id === card.lessonId);
+      const ctx = lesson ? lesson.info : "";
+      const res = await fetch("/api/dictionary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ word: card.front, context: ctx })
+      });
+      const data = await res.json();
+      
+      if (data.error) throw new Error(data.error);
+
+      const updatedCard = { ...card, ...data };
+      if (!updatedCard.meaning) updatedCard.meaning = card.back;
+      
+      await fetch(`/api/cards/${card.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedCard)
+      });
+      
+      setQueue(q => q.map(c => c.id === card.id ? updatedCard : c));
+      toast && toast("Đã điền thành công!");
+    } catch (e) {
+      toast && toast("Lỗi: " + e.message);
+    }
+    setEnriching(false);
+  }
+
   const refresh = useCallback(async () => {
     setLoading(true);
     const [d, c, l] = await Promise.all([
@@ -286,12 +321,56 @@ export default function Review({ onChanged, toast }) {
             </div>
             <div className="face back">
               <div className="ctx">{card.lessonTitle || "—"}</div>
-              <div className="word sm">
-                <span className="hl-text">{card.front}</span>
-                <button title="Xem ngữ cảnh" onClick={(e) => { e.stopPropagation(); setShowCtxCard(card); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', verticalAlign: 'text-bottom', marginLeft: '12px' }}>👁️</button>
+              
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+                <div className="word sm"><span className="hl-text">{card.front}</span></div>
+                {card.ipa && <div style={{ fontSize: '15px', color: '#666', fontFamily: 'monospace' }}>{card.ipa}</div>}
+                {card.pos && <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#3498db', fontStyle: 'italic' }}>{card.pos}</div>}
+                <button title="Xem ngữ cảnh" onClick={(e) => { e.stopPropagation(); setShowCtxCard(card); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', verticalAlign: 'text-bottom' }}>👁️</button>
               </div>
+              
               <div className="face-divider" />
-              <div className="meaning">{card.back || "(chưa nhập nghĩa)"}</div>
+              
+              <div className="meaning" style={{ fontSize: '18px', fontWeight: '500' }}>{card.meaning || card.back || "(chưa nhập nghĩa)"}</div>
+              
+              {card.engMeaning && (
+                <div style={{ marginTop: '8px', fontSize: '14px', color: '#9b59b6', fontWeight: '500' }}>
+                  {card.engMeaning}
+                </div>
+              )}
+              
+              {card.example && (
+                <div style={{ marginTop: '12px', fontSize: '14px', color: '#555', fontStyle: 'italic', borderLeft: '3px solid #ccc', paddingLeft: '8px' }}>
+                  <div>{card.example}</div>
+                  {card.translatedExample && <div style={{ marginTop: '4px', color: '#888', fontSize: '13px' }}>{card.translatedExample}</div>}
+                </div>
+              )}
+              
+              {card.collocations && (
+                <div style={{ marginTop: '12px' }}>
+                   <div style={{ fontSize: '11px', color: '#999', textTransform: 'uppercase', fontWeight: 'bold' }}>Collocations</div>
+                   <div style={{ fontSize: '14px', color: '#333', whiteSpace: 'pre-wrap' }}>{card.collocations}</div>
+                </div>
+              )}
+              
+              {card.topic && (
+                <div style={{ marginTop: '8px', display: 'inline-block', background: '#eee', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', color: '#555' }}>
+                  {card.topic}
+                </div>
+              )}
+              
+              {!card.ipa && (
+                 <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                   <button 
+                     className="btn ghost" 
+                     onClick={(e) => { e.stopPropagation(); enrichCard(card); }}
+                     style={{ fontSize: '12px', padding: '4px 8px', color: '#e67e22', background: '#fff9e6' }}
+                     disabled={enriching}
+                   >
+                     {enriching ? "Đang chạy AI..." : "✨ Tự động điền bằng AI"}
+                   </button>
+                 </div>
+              )}
             </div>
           </div>
         </div>
