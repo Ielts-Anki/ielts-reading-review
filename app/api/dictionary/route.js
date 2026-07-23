@@ -138,16 +138,18 @@ Trả về đúng định dạng JSON sau, tuyệt đối không có markdown co
 
         let text = apiData.candidates[0].content.parts[0].text;
         
-        // Remove markdown block if Gemini still returns it
-        if (text.startsWith("```json")) {
-           text = text.replace(/^```json\n?/, "");
-           text = text.replace(/\n?```$/, "");
-        } else if (text.startsWith("```")) {
-           text = text.replace(/^```\n?/, "");
-           text = text.replace(/\n?```$/, "");
+        let jsonStr = text;
+        const match = text.match(/\{[\s\S]*\}/);
+        if (match) {
+            jsonStr = match[0];
         }
         
-        const aiData = JSON.parse(text);
+        let aiData;
+        try {
+            aiData = JSON.parse(jsonStr);
+        } catch (err) {
+            throw new Error("AI trả về kết quả không phải JSON hợp lệ: " + text.substring(0, 100));
+        }
         
         if (aiData.meaning) result.meaning = aiData.meaning;
         if (aiData.collocations) result.collocations = aiData.collocations;
