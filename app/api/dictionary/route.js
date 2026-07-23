@@ -94,7 +94,12 @@ Trả về đúng định dạng JSON sau, tuyệt đối không có markdown co
              break; // success
           } catch (e) {
              lastErr = e;
-             if (!e.message.includes("404")) break; // if it's not a 404 (e.g. invalid key), stop trying
+             const msg = e.message || "";
+             // Tiếp tục fallback nếu gặp lỗi 404 (Không tìm thấy model) hoặc 429 (Bị chặn/vượt quá giới hạn)
+             // Lưu ý: limit: 0 ở một số tài khoản sẽ văng ra 429 ngay từ request đầu tiên
+             if (!msg.includes("404") && !msg.includes("429") && !msg.includes("403")) {
+                break; 
+             }
           }
         }
         
