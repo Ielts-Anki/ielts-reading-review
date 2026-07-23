@@ -67,14 +67,15 @@ export async function POST(request) {
         ];
 
         const prompt = `Bạn là chuyên gia IELTS.
-Phân tích từ vựng tiếng Anh sau: "${word}" ${ctx}.
-Trả về đúng định dạng JSON sau, tuyệt đối không có markdown code block:
+Nhiệm vụ: Phân tích từ vựng tiếng Anh "${word}" ${ctx}.
+YÊU CẦU QUAN TRỌNG: BẮT BUỘC CHỈ trả về đúng 1 object JSON duy nhất, tuyệt đối KHÔNG chứa văn bản giải thích, KHÔNG chứa chữ "Role", KHÔNG chứa dấu backtick ( \`\`\` ).
+Cấu trúc JSON bắt buộc:
 {
-  "meaning": "nghĩa tiếng Việt (phải dựa theo ngữ cảnh trong bài đọc)",
-  "collocations": "liệt kê 3-4 collocations hay gặp trong IELTS của từ này, mỗi cụm một dòng",
-  "topic": "bắt buộc chọn ĐÚNG 1 trong 31 chủ đề sau, không được tự bịa chủ đề khác: ${validTopics.join(", ")}",
-  ${!result.example ? `"example": "tự tạo 1 câu ví dụ tiếng Anh thật hay chứa từ này (do từ điển không có)",` : ""}
-  "translatedExample": "bản dịch tiếng Việt của câu ví dụ: ${result.example || "câu bạn vừa tạo"}"
+  "meaning": "nghĩa tiếng Việt (dựa theo ngữ cảnh)",
+  "collocations": "3-4 collocations IELTS phổ biến, mỗi cụm 1 dòng",
+  "topic": "chọn ĐÚNG 1 chủ đề (không tự bịa): ${validTopics.join(", ")}",
+  ${!result.example ? `"example": "1 câu ví dụ tiếng Anh hay",` : ""}
+  "translatedExample": "bản dịch tiếng Việt của câu ví dụ: ${result.example || "câu trên"}"
 }`;
 
         // Bước 1: Tự động dò danh sách Model mà API Key này được phép dùng
