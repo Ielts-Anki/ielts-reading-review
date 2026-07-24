@@ -104,7 +104,13 @@ export default function CardsTable({ onChanged, toast }) {
 
          const updatedCard = { ...card, ...data };
          
-         if (updatedCard.topic === "Error" && updatedCard.collocations && updatedCard.collocations.includes("429 Too Many Requests")) {
+         if (updatedCard.topic === "Error" && updatedCard.collocations && updatedCard.collocations.includes("429")) {
+            if (updatedCard.collocations.includes("PerDay")) {
+               toast && toast("⚠️ Hạn mức Google MIỄN PHÍ của bạn đã HẾT sạch trong hôm nay. Xin vui lòng đợi đến sáng ngày mai để Google cấp lại 1500 lượt mới nhé!");
+               setEnriching({ active: false, current: 0, total: 0 });
+               return; // Dừng toàn bộ quá trình
+            }
+            
             const match = updatedCard.collocations.match(/retry in ([\d\.]+)s/);
             let delayMs = 30000;
             if (match && match[1]) delayMs = Math.ceil(parseFloat(match[1])) * 1000 + 2000;

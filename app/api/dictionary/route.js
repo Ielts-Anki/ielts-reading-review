@@ -123,7 +123,11 @@ Now, generate the JSON for the word "${word}":`;
            apiData = await apiRes.json();
            if (apiData.error) {
               const code = apiData.error.code;
-              lastErrStr = `[Lỗi Google ${code} - ${mName}] ${apiData.error.message}`;
+              let details = "";
+              if (apiData.error.details) {
+                  details = JSON.stringify(apiData.error.details);
+              }
+              lastErrStr = `[Lỗi Google ${code} - ${mName}] ${apiData.error.message} ${details}`;
               // Nếu là lỗi 429 (vượt quá giới hạn) hoặc 404 (không tìm thấy) hoặc 403 (không có quyền) hoặc 400 (model không hỗ trợ TEXT)
               if (code === 429 || code === 404 || code === 403 || code === 400) {
                   apiData = null; // xoá để vòng lặp chạy tiếp
