@@ -141,7 +141,8 @@ Now, generate the JSON for the word "${word}":`;
         }
 
         if (!apiData) {
-            throw new Error(lastErrStr || "Tất cả các model đều bị từ chối truy cập.");
+            const available = allowedModels.map(m => m.name).join(", ");
+            throw new Error((lastErrStr || "Tất cả các model đều bị từ chối truy cập.") + ` (Models khả dụng: ${available})`);
         }
 
         let text = apiData.candidates[0].content.parts[0].text;
